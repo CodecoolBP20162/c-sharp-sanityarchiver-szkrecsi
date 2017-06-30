@@ -11,6 +11,7 @@ namespace SanityArchiver
     public partial class Form1 : Form
     {
         SeekFile seekfile = new SeekFile();
+        Encryption crypt = new Encryption();
 
         public Form1()
         {
@@ -122,7 +123,9 @@ namespace SanityArchiver
                 foreach (FileInfo currentFileInfo in directoryProperties.GetFiles()) {
                     if (currentFileInfo.Name.Contains(".zip")) {
                         item = new ListViewItem(currentFileInfo.Name, 2);
-                    } else {
+                    } else if (currentFileInfo.Name.Contains(".crypt")){
+                        item = new ListViewItem(currentFileInfo.Name, 3);
+                    } else { 
                         item = new ListViewItem(currentFileInfo.Name, 1);
                     }
 
@@ -229,23 +232,78 @@ namespace SanityArchiver
         private void cryptButton_Click(object sender, EventArgs e)
         {
             string fileName = listView1.SelectedItems[0].Tag.ToString();
+            string cryption = fileName + "crypt";
+            string sKey = "secret";
             Console.WriteLine(fileName);
             try
             {
-                File.Encrypt(fileName);
+                //File.Encrypt(fileName);
+                crypt.Crypt(fileName, cryption, sKey);
             }
             catch (Exception exc) { }
+            listView1_DoubleClick_Crypt(listView1.SelectedItems[0].Tag.ToString());
+        }
+
+        private void listView1_DoubleClick_Crypt(string fileName) {
+            DirectoryInfo directoryProperties = seekfile.RecursiveDirectorySearch(fileName, @"C:/");
+            ListViewItem.ListViewSubItem[] subItems;
+            ListViewItem item = null;
+            FileInfo currentFileInfo = new FileInfo(fileName);
+            item = new ListViewItem(currentFileInfo.Name, 3);
+            item.Text = currentFileInfo.Name;
+            item.Tag = currentFileInfo.FullName;
+            string fileSize = currentFileInfo.Length.ToString();
+            if (currentFileInfo.Length >= (1 << 10))
+                fileSize = string.Format("{0} KB", currentFileInfo.Length >> 10);
+            else if (currentFileInfo.Length >= (1 << 20))
+                fileSize = string.Format("{0} MB", currentFileInfo.Length >> 20);
+            else if (currentFileInfo.Length >= (1 << 30))
+                fileSize = string.Format("{0} GB", currentFileInfo.Length >> 30);
+            subItems = new ListViewItem.ListViewSubItem[]
+                      {new ListViewItem.ListViewSubItem(item, "File"),
+                       new ListViewItem.ListViewSubItem(item, fileSize), new ListViewItem.ListViewSubItem(item,
+            currentFileInfo.LastAccessTime.ToString("yyyy.MM.dd. hh:mm"))};
+            item.SubItems.AddRange(subItems);
+            listView1.Items.Add(item);
         }
 
         private void decryptButton_Click_1(object sender, EventArgs e)
         {
             string fileName = listView1.SelectedItems[0].Tag.ToString();
+            string cryption = fileName.Remove(6);
+            string sKey = "secret";
             Console.WriteLine(fileName);
             try
-            {
-                File.Decrypt(fileName);
+            {              
+                //File.Decrypt(fileName);
+                crypt.Decrypt(cryption, fileName, sKey);
             }
             catch (Exception exc) { }
+            listView1_DoubleClick_deCrypt(listView1.SelectedItems[0].Tag.ToString());
+        }
+
+        private void listView1_DoubleClick_deCrypt(string fileName) {
+            DirectoryInfo directoryProperties = seekfile.RecursiveDirectorySearch(fileName, @"C:/");
+            ListViewItem.ListViewSubItem[] subItems;
+            ListViewItem item = null;
+            FileInfo currentFileInfo = new FileInfo(fileName);
+            string fileSize = "";
+            if (fileName.Contains(".txt"))
+            {
+                item = new ListViewItem(currentFileInfo.Name, 1);
+            }
+            else
+            {
+                item = new ListViewItem(currentFileInfo.Name, 0);
+            }
+            item.Text = currentFileInfo.Name;
+            item.Tag = currentFileInfo.FullName;
+            subItems = new ListViewItem.ListViewSubItem[]
+                      {new ListViewItem.ListViewSubItem(item, "File"),
+                       new ListViewItem.ListViewSubItem(item, fileSize),
+                       new ListViewItem.ListViewSubItem(item, currentFileInfo.LastAccessTime.ToString("yyyy.MM.dd. hh:mm"))};
+            item.SubItems.AddRange(subItems);
+            listView1.Items.Add(item);
         }
 
         private void timer_Tick(object sender, EventArgs e)

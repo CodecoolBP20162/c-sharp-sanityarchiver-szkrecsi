@@ -114,6 +114,7 @@
             this.imageList1.Images.SetKeyName(0, "Folder.png");
             this.imageList1.Images.SetKeyName(1, "filePicture.png");
             this.imageList1.Images.SetKeyName(2, "zipicon.ico");
+            this.imageList1.Images.SetKeyName(3, "crypt.ico");
             // 
             // listView1
             // 
